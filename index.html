@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copiar Nomes dos Alunos - SEDUC</title>
+    <style>
+        * { box-sizing: border-box; margin:0; padding:0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; color: #333; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a5fb4; margin-bottom: 10px; font-size: 1.8rem; }
+        .subtitle { text-align: center; color: #555; margin-bottom: 25px; font-size: 1rem; }
+        .filters { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filters button { padding: 8px 16px; background: #1a5fb4; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .filters button:hover, .filters button.active { background: #0d47a1; }
+        .search { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #1a5fb4; color: white; font-weight: bold; }
+        tr:hover { background: #f5f9ff; }
+        .copy-btn { background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+        .copy-btn:hover { background: #218838; }
+        .copy-all { display: block; margin: 20px auto; padding: 12px 24px; background: #d81b60; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .copy-all:hover { background: #c2185b; }
+        .footer { text-align: center; margin-top: 30px; color: #777; font-size: 0.9rem; }
+        @media (max-width: 600px) { th, td { font-size: 0.85rem; padding: 8px; } .filters { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Centro de Excelência Miguel das Graças</h1>
+        <p class="subtitle">Lista de Alunos – Clique em "Copiar" para colar nome + série</p>
+
+        <div class="filters">
+            <button class="active" onclick="filter('todos')">Todos (101)</button>
+            <button onclick="filter('1ano')">1º Ano (45)</button>
+            <button onclick="filter('2ano')">2º Ano (35)</button>
+            <button onclick="filter('3ano')">3º Ano (21)</button>
+        </div>
+
+        <input type="text" class="search" placeholder="Pesquisar aluno..." onkeyup="search()">
+
+        <table id="alunos-table">
+            <thead>
+                <tr>
+                    <th>Nome do Aluno</th>
+                    <th>Série</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody id="alunos-body"></tbody>
+        </table>
+
+        <button class="copy-all" onclick="copyAll()">Copiar TODOS os Nomes</button>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 Luiz Felipe – SEDUC Monitoria</p>
+    </div>
+
+    <script>
+        const alunos = [
+            // === 1º ANO (45) ===
+            {nome: "ADRIAN EZEQUIEL BARRETO SANTOS", serie: "1º Ano"},
+            {nome: "ADRYELLE DE JESUS CUNHA", serie: "1º Ano"},
+            {nome: "ANA PAULA DE JESUS SANTOS", serie: "1º Ano"},
+            {nome: "ANNA LYVIA DOS SANTOS", serie: "1º Ano"},
+            {nome: "CARLOS PEDRO SILVA SANTOS", serie: "1º Ano"},
+            {nome: "CLÉCIO DANTAS SANTOS", serie: "1º Ano"},
+            {nome: "EMYLEE FONSECA DANTAS", serie: "1º Ano"},
+            {nome: "ENZO GABRIEL DE JESUS SANTOS", serie: "1º Ano"},
+            {nome: "EVELEN VITÓRIA DAS G. SANTOS", serie: "1º Ano"},
+            {nome: "FABIANA SANTANA SANTOS", serie: "1º Ano"},
+            {nome: "FELIPE CONCEIÇÃO DOS SANTOS", serie: "1º Ano"},
+            {nome: "GEOVANIO DE JESUS SANTOS", serie: "1º Ano"},
+            {nome: "GUSTAVO DAS GRACAS DE JESUS", serie: "1º Ano"},
+            {nome: "IRIS SANTOS DA SILVA", serie: "1º Ano"},
+            {nome: "ISABELA SANTANA DE OLIVEIRA", serie: "1º Ano"},
+            {nome: "ISABELA SANTOS DE JESUS", serie: "1º Ano"},
+            {nome: "ISABELE OLIVEIRA COSTA", serie: "1º Ano"},
+            {nome: "ISABELLY SOPHIA S. DOS SANTOS", serie: "1º Ano"},
+            {nome: "ISADORA SANTANA DOS SANTOS", serie: "1º Ano"},
+            {nome: "ISIS GABRIELLE SOUZA GOES", serie: "1º Ano"},
+            {nome: "JONATAS DIAS VIEIRA", serie: "1º Ano"},
+            {nome: "JOSE LUCAS BRITO VASCONCELOS", serie: "1º Ano"},
+            {nome: "JOSE PHABLO PEREIRA SANTOS", serie: "1º Ano"},
+            {nome: "JUAN DA SILVA VENTURA", serie: "1º Ano"},
+            {nome: "KAMILA SANTOS DE JESUS", serie: "1º Ano"},
+            {nome: "KATHERY MARIA DOS SANTOS", serie: "1º Ano"},
+            {nome: "LARISA MENDONÇA DE SOUZA", serie: "1º Ano"},
+            {nome: "LAUANE MENDONÇA DE SOUZA", serie: "1º Ano"},
+            {nome: "LUCAS DA SILVA MENEZES", serie: "1º Ano"},
+            {nome: "LUCAS SANTOS DA MOTA", serie: "1º Ano"},
+            {nome: "LUCIANA MENDONÇA DOS S. BARRETO", serie: "1º Ano"},
+            {nome: "MAIRA DO NASCIMENTO REZENDE", serie: "1º Ano"},
+            {nome: "MARCELA BARBOZA DOS SANTOS", serie: "1º Ano"},
+            {nome: "MARIA CLARA SILVA SANTOS", serie: "1º Ano"},
+            {nome: "MARIA ISABELLA DE JESUS BARRETO", serie: "1º Ano"},
+            {nome: "MARIA JUARINA BATISTA DIAS", serie: "1º Ano"},
+            {nome: "MATEUS COSTA MENEZES", serie: "1º Ano"},
+            {nome: "MAYSA DIAS DOS SANTOS", serie: "1º Ano"},
+            {nome: "MICAEL SANTOS LIMA", serie: "1º Ano"},
+            {nome: "NATALI DOS SANTOS", serie: "1º Ano"},
+            {nome: "NICOLAS GABRIEL DA SILVA SOUZA", serie: "1º Ano"},
+            {nome: "RAVY TALLYSON MELO SANTOS", serie: "1º Ano"},
+            {nome: "TALISSON PIETRO SANTOS SILVA", serie: "1º Ano"},
+            {nome: "YASMIM SANTOS", serie: "1º Ano"},
+            {nome: "YTALLO RUAN PEREIRA DE MELO", serie: "1º Ano"},
+            // === 2º ANO (35) ===
+            {nome: "ALEXANDRE FONSECA SOUZA", serie: "2º Ano"},
+            {nome: "ANA CLARA CAJUI SILVA", serie: "2º Ano"},
+            {nome: "ANALU ALVES DE JESUS", serie: "2º Ano"},
+            {nome: "ANA LUISA SILVA VASCONCELOS", serie: "2º Ano"},
+            {nome: "ANDREIA VITÓRIA C. DE ANDRADE", serie: "2º Ano"},
+            {nome: "ANDREZA DE JESUS MENEZES", serie: "2º Ano"},
+            {nome: "ANNA SOPHIA DA COSTA OLIVEIRA", serie: "2º Ano"},
+            {nome: "ANNE LAVINIA BORGES DOS SANTOS", serie: "2º Ano"},
+            {nome: "BARBARA VIEIRA DOS SANTOS SILVA", serie: "2º Ano"},
+            {nome: "BIANCA LARISSA DIAS FONTES", serie: "2º Ano"},
+            {nome: "BRENO DA COSTA ALVES", serie: "2º Ano"},
+            {nome: "CAIQUE DOS SANTOS SOUZA", serie: "2º Ano"},
+            {nome: "DANIELLE DOS SANTOS MOTA", serie: "2º Ano"},
+            {nome: "DOMINI SILVA OLIVEIRA", serie: "2º Ano"},
+            {nome: "EDUARDO INACIO ALVES FEITOSA", serie: "2º Ano"},
+            {nome: "EMYLE GABRIELLY O. MENEZES", serie: "2º Ano"},
+            {nome: "GEFERSON EDUARDO DE JESUS", serie: "2º Ano"},
+            {nome: "GENISSON JÚNIOR S. DOS SANTOS", serie: "2º Ano"},
+            {nome: "GLÓRIA MARIA DA SILVA LIMA", serie: "2º Ano"},
+            {nome: "ITALO RUAN DAS GRAÇAS SOUSA", serie: "2º Ano"},
+            {nome: "JULIANE ALVES SANTOS", serie: "2º Ano"},
+            {nome: "JÚNIO SILVA DE JESUS", serie: "2º Ano"},
+            {nome: "LARA SANTOS FONSECA", serie: "2º Ano"},
+            {nome: "LETICIA LIMA DE OLIVEIRA", serie: "2º Ano"},
+            {nome: "MARIA EUDOXIA DE JESUS", serie: "2º Ano"},
+            {nome: "MARIA ISABELA O. MENDONÇA", serie: "2º Ano"},
+            {nome: "MARIANA CORREIA ARAGÃO", serie: "2º Ano"},
+            {nome: "MARIANA MAYA LIMA SANTOS", serie: "2º Ano"},
+            {nome: "MISAEL LIMA DA FONSECA", serie: "2º Ano"},
+            {nome: "NILSON JOSÉ DOS SANTOS NETO", serie: "2º Ano"},
+            {nome: "PABLO GUSTAVO PEREIRA SANTOS", serie: "2º Ano"},
+            {nome: "PEDRO HENRIQUE DAMIÃO SANTOS", serie: "2º Ano"},
+            {nome: "VANESSA MOTA CORREIA", serie: "2º Ano"},
+            {nome: "VICTOR HUGO BATISTA SANTOS", serie: "2º Ano"},
+            {nome: "YASMIN LIMA CONCEIÇÃO", serie: "2º Ano"},
+            // === 3º ANO (21) ===
+            {nome: "AUGUSTO JOSÉ DOS SANTOS", serie: "3º Ano"},
+            {nome: "CLOVES SANTOS DE JESUS", serie: "3º Ano"},
+            {nome: "DANIEL DOS SANTOS", serie: "3º Ano"},
+            {nome: "DIOGO ALVES DE JESUS", serie: "3º Ano"},
+            {nome: "ISADORA SANTOS SILVA", serie: "3º Ano"},
+            {nome: "ISTEFANNY MOTA OLIVEIRA", serie: "3º Ano"},
+            {nome: "JAMILLE DOS SANTOS DE JESUS", serie: "3º Ano"},
+            {nome: "JHENIFER MENESES OLIVEIRA", serie: "3º Ano"},
+            {nome: "JOSÉ EDSON DOS SANTOS", serie: "3º Ano"},
+            {nome: "KAUA SILVA BATISTA", serie: "3º Ano"},
+            {nome: "KAYKY DOS SANTOS", serie: "3º Ano"},
+            {nome: "LENUZIA BARBOSA DOS SANTOS", serie: "3º Ano"},
+            {nome: "LUCIELLE SANTOS DE JESUS", serie: "3º Ano"},
+            {nome: "LUIS GUSTAVO DE JESUS SANTOS", serie: "3º Ano"},
+            {nome: "MAIARA DIAS FONSECA", serie: "3º Ano"},
+            {nome: "MAIARA DO NASCIMENTO REZENDE", serie: "3º Ano"},
+            {nome: "MARCOS HENRIQUE O. DE JESUS", serie: "3º Ano"},
+            {nome: "MAYNE ÉVILEN CARDOSO SANTOS", serie: "3º Ano"},
+            {nome: "MYLENA SANTOS VIEIRA", serie: "3º Ano"},
+            {nome: "POLLYANA SANTOS SOUZA", serie: "3º Ano"},
+            {nome: "TOMÁS OLIVEIRA COSTA", serie: "3º Ano"}
+        ];
+
+        let filtered = [...alunos];
+
+        function render() {
+            const tbody = document.getElementById('alunos-body');
+            tbody.innerHTML = '';
+            filtered.forEach(aluno => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${aluno.nome}</td>
+                    <td>${aluno.serie}</td>
+                    <td><button class="copy-btn" onclick="copy('${aluno.nome} - ${aluno.serie}')">Copiar</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function copy(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`Copiado: ${text}`);
+            }).catch(() => {
+                prompt("Falha ao copiar. Copie manualmente:", text);
+            });
+        }
+
+        function copyAll() {
+            const all = filtered.map(a => `${a.nome} - ${a.serie}`).join('\n');
+            navigator.clipboard.writeText(all).then(() => {
+                alert(`Todos os ${filtered.length} nomes copiados!`);
+            });
+        }
+
+        function filter(ano) {
+            document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (ano === 'todos') filtered = [...alunos];
+            else if (ano === '1ano') filtered = alunos.filter(a => a.serie === '1º Ano');
+            else if (ano === '2ano') filtered = alunos.filter(a => a.serie === '2º Ano');
+            else if (ano === '3ano') filtered = alunos.filter(a => a.serie === '3º Ano');
+
+            render();
+            search(); // reaplica busca
+        }
+
+        function search() {
+            const query = document.querySelector('.search').value.toLowerCase();
+            const rows = document.querySelectorAll('#alunos-body tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        // Inicializa
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+        });
+    </script>
+</body>
+</html>
